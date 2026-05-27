@@ -308,28 +308,6 @@ export const Waveform: React.FC<WaveformProps> = ({
       onWheel={handleWheel}
     >
       <canvas ref={canvasRef} className="block w-full h-full" />
-      
-      {phaseOffset !== undefined && (
-        <div className="absolute top-1 left-1.5 flex flex-col items-start gap-0.5 z-10 bg-[#07070a]/90 border border-white/5 p-1 rounded backdrop-blur-md pointer-events-none select-none">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[5.5px] text-white/40 tracking-widest font-black uppercase">BEAT Match</span>
-            <span className={`text-[6px] font-mono leading-none font-bold ${Math.abs(phaseOffset) < 0.05 ? 'text-[#1dd1a1]' : 'text-[#ff3838]'}`}>
-              {Math.abs(phaseOffset) < 0.05 ? 'SYNCED' : (phaseOffset > 0 ? `+${(phaseOffset * 100).toFixed(0)}%` : `${(phaseOffset * 100).toFixed(0)}%`)}
-            </span>
-          </div>
-          <div className="w-[85px] h-1.5 bg-neutral-900 border border-[#222]/80 rounded relative overflow-hidden flex items-center justify-center">
-            <div className="absolute h-full w-[1.5px] bg-white/20 z-10" />
-            <div 
-              className={`absolute h-full w-[5px] rounded-[1px] transition-all duration-75 ${
-                Math.abs(phaseOffset) < 0.05 
-                  ? 'bg-[#1dd1a1] shadow-[0_0_6px_rgba(29,209,161,0.8)]' 
-                  : 'bg-[#ff3838] shadow-[0_0_4px_rgba(255,56,56,0.5)]'
-              }`}
-              style={{ left: `calc(50% + ${phaseOffset * 100}% - 2.5px)` }}
-            />
-          </div>
-        </div>
-      )}
 
       <div className="absolute top-1 right-1 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="px-1.5 py-0.5 bg-black/80 border border-white/10 rounded flex items-center gap-2">

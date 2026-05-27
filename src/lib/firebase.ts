@@ -4,7 +4,8 @@ import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, l
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+const databaseId = (firebaseConfig as any).firestoreDatabaseId || (firebaseConfig as any).databaseId;
+export const db = databaseId ? getFirestore(app, databaseId) : getFirestore(app);
 export const auth = getAuth();
 const googleProvider = new GoogleAuthProvider();
 

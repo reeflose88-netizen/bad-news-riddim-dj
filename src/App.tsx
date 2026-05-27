@@ -2722,6 +2722,66 @@ function Deck({ id, state, angle, zoom, onZoomChange, onPitchBend, onEqCrossover
   );
 }
 
+function StemsStrip({ id, onEqKill, eqKills }: { id: 'A' | 'B', onEqKill: (id: 'A' | 'B', band: 'hi' | 'mid' | 'low') => void, eqKills: { hi: boolean, mid: boolean, low: boolean } }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5 pt-1 w-[70px] bg-black/40 border border-[#333]/20 p-1 rounded-sm">
+      <div className="text-[7px] text-[#888] font-bold uppercase tracking-wider mb-0.5">CH {id}</div>
+      
+      {/* VOCAL STEM */}
+      <div className="flex flex-col items-center w-full gap-0.5">
+        <span className="text-[5.5px] text-[#ffdd55] font-black tracking-widest leading-none scale-[0.9]">VOCAL</span>
+        <button 
+          onClick={() => onEqKill(id, 'hi')}
+          className={`w-full py-1 text-[7px] font-bold uppercase border rounded-sm transition-all flex flex-col items-center justify-center cursor-pointer select-none active:scale-[0.96] ${
+            !eqKills.hi 
+              ? 'bg-linear-to-b from-[#ffd200] to-[#b38000] text-black border-[#ffde59] shadow-[0_0_8px_rgba(255,222,89,0.3)] font-black' 
+              : 'bg-black/60 border-white/5 text-white/20 line-through'
+          }`}
+        >
+          {!eqKills.hi ? 'VOCAL' : 'MUTED'}
+        </button>
+      </div>
+
+      {/* MELODY STEM */}
+      <div className="flex flex-col items-center w-full gap-0.5">
+        <span className="text-[5.5px] text-[#4af] font-black tracking-widest leading-none scale-[0.9]">INST</span>
+        <button 
+          onClick={() => onEqKill(id, 'mid')}
+          className={`w-full py-1 text-[7px] font-bold uppercase border rounded-sm transition-all flex flex-col items-center justify-center cursor-pointer select-none active:scale-[0.96] ${
+            !eqKills.mid 
+              ? 'bg-linear-to-b from-[#1da1f2] to-[#0d59a3] text-white border-[#4af] shadow-[0_0_8px_rgba(75,195,255,0.3)] font-black' 
+              : 'bg-black/60 border-white/5 text-white/20 line-through'
+          }`}
+        >
+          {!eqKills.mid ? 'MELODY' : 'MUTED'}
+        </button>
+      </div>
+
+      {/* DRUMS STEM */}
+      <div className="flex flex-col items-center w-full gap-0.5">
+        <span className="text-[5.5px] text-[#ff3366] font-black tracking-widest leading-none scale-[0.9]">BEAT</span>
+        <button 
+          onClick={() => onEqKill(id, 'low')}
+          className={`w-full py-1 text-[7px] font-bold uppercase border rounded-sm transition-all flex flex-col items-center justify-center cursor-pointer select-none active:scale-[0.96] ${
+            !eqKills.low 
+              ? 'bg-linear-to-b from-[#ff3366] to-[#a30030] text-white border-red-400/80 shadow-[0_0_8px_rgba(255,51,102,0.3)] font-black' 
+              : 'bg-black/60 border-white/5 text-white/20 line-through'
+          }`}
+        >
+          {!eqKills.low ? 'DRUMS' : 'MUTED'}
+        </button>
+      </div>
+
+      <div className="mt-1 flex flex-col items-center">
+         <span className="text-[5px] text-[#555] font-black leading-none scale-[0.9] uppercase">ISOLATOR</span>
+         <div className="w-10 h-1 bg-neutral-900 border border-[#222] rounded-full relative overflow-hidden mt-0.5">
+           <div className={`h-full bg-linear-to-r ${id === 'A' ? 'from-[#4af]' : 'from-[#ee2222]'} to-white`} style={{ width: !eqKills.hi && !eqKills.mid && !eqKills.low ? '100%' : !eqKills.hi || !eqKills.mid || !eqKills.low ? '50%' : '0%' }} />
+         </div>
+      </div>
+    </div>
+  );
+}
+
 function Mixer({ crossfaderPos, onCrossfadeChange, masterFx, onMasterFxChange, onEqKill, onAutomix, masterEq, onMasterEqChange, crossfaderCurve, onCurveChange, deckA, deckB, onEqCrossoverChange, masterTempoLock, onMasterTempoToggle }: { 
   crossfaderPos: number, 
   onCrossfadeChange: (val: number) => void,
@@ -2739,17 +2799,29 @@ function Mixer({ crossfaderPos, onCrossfadeChange, masterFx, onMasterFxChange, o
   masterTempoLock: boolean,
   onMasterTempoToggle: () => void
 }) {
+  const [mixerMode, setMixerMode] = useState<'eq' | 'stems'>('eq');
+
   return (
     <div className="w-[185px] bg-linear-to-b from-[#1c1d1f] to-[#0d0d0f] border-x-2 border-[#25272a] flex flex-col p-1 gap-1 shadow-2xl relative">
       <div className="flex gap-0.5">
         <button 
           onClick={onMasterTempoToggle}
-          className={`flex-1 h-4.5 border rounded-sm text-[7px] font-bold transition-all ${
+          className={`flex-1 h-4.5 border rounded-sm text-[7px] font-bold transition-all cursor-pointer ${
             masterTempoLock ? 'bg-[#a8f] border-[#a8f] text-white btn-glow-accent' : 'bg-[#1a1a1a] border-[#2a2a2a] text-[#555]'
           }`}
         >MT LOCK</button>
-        <div className="flex-1 h-4.5 bg-[#3a3a3a] border border-[#444] rounded-sm text-[7.5px] font-bold text-white flex items-center justify-center">MIXER</div>
-        <div className="flex-1 h-4.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm text-[7.5px] font-bold text-[#555] flex items-center justify-center">STEMS</div>
+        <button 
+          onClick={() => setMixerMode('eq')}
+          className={`flex-1 h-4.5 border rounded-sm text-[7.5px] font-bold uppercase transition-all flex items-center justify-center cursor-pointer ${
+            mixerMode === 'eq' ? 'bg-[#3a3a3a] border-[#444] text-white' : 'bg-[#1a1a1a] border-[#2a2a2a] text-[#555] hover:text-[#bbb]'
+          }`}
+        >MIXER</button>
+        <button 
+          onClick={() => setMixerMode('stems')}
+          className={`flex-1 h-4.5 border rounded-sm text-[7.5px] font-bold uppercase transition-all flex items-center justify-center cursor-pointer ${
+            mixerMode === 'stems' ? 'bg-[#a8f]/90 border-[#a8f]/40 text-white btn-glow-accent' : 'bg-[#1a1a1a] border-[#2a2a2a] text-[#555] hover:text-white'
+          }`}
+        >STEMS</button>
       </div>
 
       {/* MASTER EQ & CURVE SECTION */}
@@ -2800,7 +2872,11 @@ function Mixer({ crossfaderPos, onCrossfadeChange, masterFx, onMasterFxChange, o
       </div>
 
       <div className="flex flex-1 gap-1 px-1">
-        <ChannelStrip id="A" onEqKill={onEqKill} eqKills={deckA.eqKills} crossovers={deckA.eqCrossovers} onCrossoverChange={onEqCrossoverChange} />
+        {mixerMode === 'eq' ? (
+          <ChannelStrip id="A" onEqKill={onEqKill} eqKills={deckA.eqKills} crossovers={deckA.eqCrossovers} onCrossoverChange={onEqCrossoverChange} />
+        ) : (
+          <StemsStrip id="A" onEqKill={onEqKill} eqKills={deckA.eqKills} />
+        )}
         <div className="flex flex-col gap-0.5 mt-auto mb-2 flex-1 items-center">
            <div className="text-[6px] text-[#444] mb-1">VU</div>
            <div className="flex gap-1.5 h-[85%]">
@@ -2808,7 +2884,11 @@ function Mixer({ crossfaderPos, onCrossfadeChange, masterFx, onMasterFxChange, o
              <VUMeter side="R" />
            </div>
         </div>
-        <ChannelStrip id="B" onEqKill={onEqKill} eqKills={deckB.eqKills} crossovers={deckB.eqCrossovers} onCrossoverChange={onEqCrossoverChange} />
+        {mixerMode === 'eq' ? (
+          <ChannelStrip id="B" onEqKill={onEqKill} eqKills={deckB.eqKills} crossovers={deckB.eqCrossovers} onCrossoverChange={onEqCrossoverChange} />
+        ) : (
+          <StemsStrip id="B" onEqKill={onEqKill} eqKills={deckB.eqKills} />
+        )}
       </div>
 
       <div className="mt-auto px-2 pb-2">
