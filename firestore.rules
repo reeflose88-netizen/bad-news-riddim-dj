@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- User Profile ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'createdAt'])
+        && data.uid == request.auth.uid
+        && data.createdAt == request.time
+        && (data.displayName is string || !data.keys().hasAny(['displayName']))
+        && (data.photoURL is string || !data.keys().hasAny(['photoURL']));
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) 
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'preferences', 'updatedAt', 'eqCrossovers_A_loMid', 'eqCrossovers_A_midHi', 'eqCrossovers_B_loMid', 'eqCrossovers_B_midHi', 'masterEq_low', 'masterEq_mid', 'masterEq_high'])
+        && incoming().updatedAt == request.time;
+
+      // --- Cue Points ---
+      match /cuePoints/{cueId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && incoming().createdAt == request.time;
+        allow delete: if isOwner(userId);
+      }
+
+      // --- History ---
+      match /history/{historyId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && incoming().playedAt == request.time;
+      }
+    }
+
+    // --- Song Requests ---
+    function isValidRequest(data) {
+      return data.keys().hasAll(['title', 'requestedAt', 'status'])
+        && data.title is string && data.title.size() <= 200
+        && data.status in ['pending', 'added', 'rejected']
+        && data.requestedAt == request.time;
+    }
+
+    match /songRequests/{requestId} {
+      allow list, get: if true;
+      allow create: if isSignedIn() && isValidRequest(incoming());
+      allow update: if isSignedIn() && (
+        // Only allow updating status if requester matches or logic (simplified for agent)
+        existing().requestedBy == request.auth.uid 
+        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+      allow delete: if isSignedIn() && (
+        existing().requestedBy == request.auth.uid 
+        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+  }
+}

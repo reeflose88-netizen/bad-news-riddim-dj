@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User preferences and global settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "autodjTransitionStyle": { "type": "string", "enum": ["fade", "swap", "drop"] },
+            "autodjTransitionDuration": { "type": "number" },
+            "crossfaderCurve": { "type": "string", "enum": ["linear", "log", "exp"] }
+          }
+        },
+        "eqCrossovers_A_loMid": { "type": "number" },
+        "eqCrossovers_A_midHi": { "type": "number" },
+        "eqCrossovers_B_loMid": { "type": "number" },
+        "eqCrossovers_B_midHi": { "type": "number" },
+        "masterEq_low": { "type": "number" },
+        "masterEq_mid": { "type": "number" },
+        "masterEq_high": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "createdAt"]
+    },
+    "CuePoint": {
+      "title": "Cue Point",
+      "description": "Stored cue marker for a track",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "trackId": { "type": "string" },
+        "position": { "type": "number" },
+        "label": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["trackId", "position", "createdAt"]
+    },
+    "HistoryItem": {
+      "title": "History Item",
+      "description": "Log of a played track",
+      "type": "object",
+      "properties": {
+        "trackId": { "type": "string" },
+        "title": { "type": "string" },
+        "playedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["trackId", "title", "playedAt"]
+    },
+    "SongRequest": {
+      "title": "Song Request",
+      "description": "User requested track",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "artist": { "type": "string" },
+        "requestedBy": { "type": "string" },
+        "requestedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "added", "rejected"] }
+      },
+      "required": ["title", "requestedAt", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "App users"
+    },
+    "/users/{userId}/cuePoints/{cueId}": {
+      "schema": "CuePoint",
+      "description": "User's saved cue points per track"
+    },
+    "/users/{userId}/history/{historyId}": {
+      "schema": "HistoryItem",
+      "description": "User's playback history"
+    },
+    "/songRequests/{requestId}": {
+      "schema": "SongRequest",
+      "description": "Public song requests"
+    }
+  }
+}
