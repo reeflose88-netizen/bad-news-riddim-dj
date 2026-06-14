@@ -27,7 +27,7 @@ async function startServer() {
     
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-3.5-flash",
         contents: `Given the currently playing track: "${currentTrack || 'Unknown'}", and recent history: "${history || 'None'}", suggest 5 next tracks. Crowd mood: "${crowdFeedback || 'Normal'}". Provide artist, title, estimated BPM, and a short mixing tip for each.`,
         config: {
           responseMimeType: "application/json",

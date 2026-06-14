@@ -5,6 +5,7 @@ interface KnobProps {
   min?: number;
   max?: number;
   defaultValue?: number;
+  value?: number;
   unit?: string;
   label?: string;
   color?: string;
@@ -16,26 +17,45 @@ export const Knob: React.FC<KnobProps> = ({
   min = 0,
   max = 100,
   defaultValue = 50,
+  value: valueProp,
   unit = '',
   label,
   color = '#44aaff',
   onChange,
 }) => {
-  const [value, setValue] = useState(defaultValue);
-  const [angle, setAngle] = useState(((defaultValue - min) / (max - min)) * 270 - 135);
+  const isControlled = valueProp !== undefined;
+  const initialValue = isControlled ? valueProp! : defaultValue;
+  const [localValue, setLocalValue] = useState(initialValue);
+  const value = isControlled ? valueProp! : localValue;
+
+  const getAngleFromValue = (val: number) => {
+    return ((val - min) / (max - min)) * 270 - 135;
+  };
+
+  const [angle, setAngle] = useState(getAngleFromValue(initialValue));
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef<number>(0);
   const startAngleRef = useRef<number>(0);
 
   const sizePx = size === 'xs' ? 20 : size === 'sm' ? 28 : size === 'md' ? 34 : 40;
-  const innerInset1 = size === 'xs' ? '2px' : '3px';
-  const innerInset2 = size === 'xs' ? '4px' : '5px';
+  const innerInset1 = size === 'xs' ? '2px' : size === 'sm' ? '3px' : size === 'md' ? '4.5px' : '5.5px';
+  const innerInset2 = size === 'xs' ? '4px' : size === 'sm' ? '6px' : size === 'md' ? '8.5px' : '10.5px';
 
+  // Sync angle if valueProp changes externally (controlled case)
   useEffect(() => {
-    const newVal = min + ((angle + 135) / 270) * (max - min);
-    setValue(newVal);
+    if (isControlled && valueProp !== undefined) {
+      setAngle(getAngleFromValue(valueProp));
+    }
+  }, [valueProp, min, max]);
+
+  const handleAngleChange = (newAngle: number) => {
+    setAngle(newAngle);
+    const newVal = min + ((newAngle + 135) / 270) * (max - min);
+    if (!isControlled) {
+      setLocalValue(newVal);
+    }
     if (onChange) onChange(newVal);
-  }, [angle]);
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     startYRef.current = e.clientY;
@@ -45,7 +65,7 @@ export const Knob: React.FC<KnobProps> = ({
     const handleMouseMove = (ev: MouseEvent) => {
       const deltaY = startYRef.current - ev.clientY;
       const newAngle = Math.max(-135, Math.min(135, startAngleRef.current + deltaY * 1.5));
-      setAngle(newAngle);
+      handleAngleChange(newAngle);
     };
 
     const handleMouseUp = () => {
@@ -59,12 +79,14 @@ export const Knob: React.FC<KnobProps> = ({
   };
 
   const handleDoubleClick = () => {
-    setAngle(0);
+    const centerVal = min + (max - min) / 2;
+    handleAngleChange(getAngleFromValue(centerVal));
   };
 
   const handleWheel = (e: React.WheelEvent) => {
     const delta = e.deltaY > 0 ? -5 : 5;
-    setAngle(prev => Math.max(-135, Math.min(135, prev + delta)));
+    const nextAngle = Math.max(-135, Math.min(135, angle + delta));
+    handleAngleChange(nextAngle);
   };
 
   const displayValue = Number.isInteger(value) ? value : value.toFixed(1);
@@ -112,7 +134,10 @@ export const Knob: React.FC<KnobProps> = ({
         
         {/* Tooltip */}
         {(isDragging || true) && (
-          <div className={`absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-[#111] border border-[${color}] text-[${color}] text-[8px] px-1 rounded whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50`}>
+          <div 
+            className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-neutral-950/95 border text-[7.5px] font-mono font-bold tracking-tight px-1.5 py-0.5 rounded whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
+            style={{ borderColor: `${color}44`, color: color }}
+          >
             {displayValue}{unit}
           </div>
         )}

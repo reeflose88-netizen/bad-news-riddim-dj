@@ -63,12 +63,15 @@ export interface DeckState {
   cuePoints: { [key: number]: number };
   hotCues: (number | null)[]; // 1-3 hot cues
   eqKills: { hi: boolean; mid: boolean; low: boolean };
+  eqLevels?: { hi: number; mid: number; low: number };
+  filterValue?: number;
   eqCrossovers: { loMid: number; midHi: number };
   keyShift: number;
   bpmLocked: boolean;
   masterTempoLocked: boolean;
   vinylMode: boolean;
   slipMode: boolean;
+  scratchFriction?: number;
   quantize: boolean;
   isAnalyzing: boolean;
   keyLock: boolean;
